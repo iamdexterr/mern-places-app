@@ -1,6 +1,7 @@
 import AppError from "../utils/appError.js";
 import { v4 as uuidv4 } from "uuid";
 import { getCoordinatesForAddress } from "../utils/location.js";
+import Place from "../models/places.model.js";
 
 let DUMMY_PLACES = [
   {
@@ -66,16 +67,31 @@ export const createPlace = async (req, res, next) => {
     return next(error);
   }
 
-  const createdPlace = {
-    id: uuidv4(),
+  // const createdPlace = {
+  //   id: uuidv4(),
+  //   title,
+  //   description,
+  //   creator,
+  //   address,
+  //   location: coordinates,
+  // };
+  const createdPlace = new Place({
     title,
     description,
     creator,
     address,
     location: coordinates,
-  };
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg",
+  });
+  try {
+    await createdPlace.save();
+  } catch (error) {
+    const err = new AppError("Could not create a place.", 400);
+    console.log(error);
+    return next(err);
+  }
 
-  DUMMY_PLACES.push(createdPlace);
   res.status(201).json({ message: "Place created", data: createdPlace });
 };
 

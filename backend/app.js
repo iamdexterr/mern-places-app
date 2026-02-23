@@ -3,6 +3,7 @@ import placesRoutes from "./routes/places.routes.js";
 import usersRoutes from "./routes/users.routes.js";
 import AppError from "./utils/appError.js";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 
 dotenv.config();
 
@@ -32,6 +33,15 @@ app.use((err, req, res, next) => {
     .json({ message: err.message || "Something went wrong!" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+mongoose
+  .connect(
+    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.haiqcxv.mongodb.net/Places?appName=Cluster0`,
+  )
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+  });
