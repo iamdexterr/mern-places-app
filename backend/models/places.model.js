@@ -15,7 +15,8 @@ const PlacesSchema = new mongoose.Schema(
       required: true,
     },
     creator: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     address: {

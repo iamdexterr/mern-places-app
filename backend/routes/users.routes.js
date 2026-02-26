@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  deleteUser,
   getUsers,
   loginUser,
   signupUser,
@@ -12,6 +13,7 @@ const router = Router();
 router.get("/", getUsers);
 
 router.post("/login", validate(loginSchema), loginUser);
+router.delete("/:uid", deleteUser);
 
 router.post("/signup", validate(signupSchema), signupUser);
 
