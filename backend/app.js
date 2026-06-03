@@ -4,6 +4,7 @@ import usersRoutes from "./routes/users.routes.js";
 import AppError from "./utils/appError.js";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import cors from "cors";
 
 dotenv.config();
 
@@ -12,6 +13,11 @@ const PORT = process.env.PORT || 5001;
 const app = express();
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+  }),
+);
 
 app.get("/", (req, res) => {
   res.send("Hello World");

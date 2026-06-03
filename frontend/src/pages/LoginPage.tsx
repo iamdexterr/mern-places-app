@@ -14,6 +14,7 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useLoginUser, useSignupUser } from "@/hooks/useUsers";
 import { loginSchema, type LoginFormValues } from "@/schema/login";
 import { signupSchema, type SignupFormValues } from "@/schema/signup";
 import authStore from "@/store/authStore";
@@ -21,12 +22,28 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [mode, setMode] = useState("login");
   const navigate = useNavigate();
 
   const { login, isLoggedIn } = authStore();
+  const signupMutation = useSignupUser({
+    onSuccess: () => {
+      toast.success("User signed up successfully!");
+      setMode("login");
+    },
+  });
+
+  const loginMutation = useLoginUser({
+    onSuccess: () => {
+      toast.success("User Logged In successfully!");
+      login();
+
+      navigate("/");
+    },
+  });
 
   const loginForm = useForm<LoginFormValues>({
     defaultValues: {
@@ -46,10 +63,12 @@ export default function LoginPage() {
 
   const { errors } = loginForm.formState;
 
-  const submitHandler = (values: LoginFormValues) => {
-    console.log(values);
-    login();
-    navigate("/");
+  const loginSubmitHandler = (values: LoginFormValues) => {
+    loginMutation.mutate(values);
+  };
+
+  const signUpSubmitHandler = (values: SignupFormValues) => {
+    signupMutation.mutate(values);
   };
 
   if (isLoggedIn) {
@@ -68,7 +87,7 @@ export default function LoginPage() {
           <CardContent>
             <form
               className="space-y-4"
-              onSubmit={signupForm.handleSubmit(submitHandler)}
+              onSubmit={signupForm.handleSubmit(signUpSubmitHandler)}
             >
               <FieldSet className="w-full space-y-4">
                 <FieldGroup className="space-y-4">
@@ -120,7 +139,11 @@ export default function LoginPage() {
                   </Field>
                 </FieldGroup>
               </FieldSet>
-              <Button type="submit" className="w-full">
+              <Button
+                loading={signupMutation.isPending}
+                type="submit"
+                className="w-full"
+              >
                 Signup
               </Button>
               <FieldDescription className="text-center">
@@ -146,7 +169,7 @@ export default function LoginPage() {
         <CardContent>
           <form
             className="space-y-4"
-            onSubmit={loginForm.handleSubmit(submitHandler)}
+            onSubmit={loginForm.handleSubmit(loginSubmitHandler)}
           >
             <FieldSet className="w-full space-y-4">
               <FieldGroup className="space-y-4">
@@ -183,7 +206,11 @@ export default function LoginPage() {
                 </Field>
               </FieldGroup>
             </FieldSet>
-            <Button type="submit" className="w-full">
+            <Button
+              type="submit"
+              className="w-full"
+              loading={loginMutation.isPending}
+            >
               Login
             </Button>
             <FieldDescription className="text-center">

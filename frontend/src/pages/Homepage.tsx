@@ -12,7 +12,7 @@ const USERS = [
 
 const HomePage = () => {
   return (
-    <div className="p-8">
+    <div className="p-8 ">
       <UserList items={USERS} />
     </div>
   );

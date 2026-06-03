@@ -13,7 +13,7 @@ const UserItem = ({
   placeCount: number;
 }) => {
   return (
-    <Link to={`/${id}/places`}>
+    <Link to={`/${id}/places`} className="block">
       <div className="flex items-start gap-4 p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
           {image ? (
