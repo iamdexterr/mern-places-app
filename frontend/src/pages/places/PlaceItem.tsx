@@ -19,8 +19,11 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { LocationMap } from "@/components/Map";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import authStore from "@/store/authStore";
+import { toast } from "sonner";
+import { useDeletePlace } from "@/hooks/usePlaces";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
 
 interface PlaceItemProps {
   id: number;
@@ -32,6 +35,7 @@ interface PlaceItemProps {
     lat: number;
     lng: number;
   };
+  creatorId: string;
 }
 
 const PlaceItem = ({
@@ -41,14 +45,26 @@ const PlaceItem = ({
   address,
   description,
   coordinates,
+  creatorId,
 }: PlaceItemProps) => {
+  const userId = useParams().userId!;
   const [open, setOpen] = useState(false);
   const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
-  const { isLoggedIn } = authStore();
+  const { isLoggedIn, user } = authStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const deletePlaceMutation = useDeletePlace({
+    onSuccess: () => {
+      toast.success("Place deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["user-places", userId] });
+    },
+  });
+
   const onDeletePlace = () => {
     console.log("Deleting");
     setConfirmDeleteModal(false);
+    deletePlaceMutation.mutate(id);
   };
   return (
     <>
@@ -61,7 +77,7 @@ const PlaceItem = ({
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
           </div>
-          <CardHeader className="pb-2">
+          <CardHeader className="">
             <CardTitle className="text-xl">{title}</CardTitle>
             <CardDescription className="flex items-center gap-1.5">
               <MapPin className="w-4 h-4" />
@@ -77,7 +93,7 @@ const PlaceItem = ({
             <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
               View on Map
             </Button>
-            {isLoggedIn && (
+            {isLoggedIn && user?.id === creatorId && (
               <>
                 <Button
                   variant="outline"
@@ -125,7 +141,11 @@ const PlaceItem = ({
 
           <DialogFooter>
             <Button onClick={() => setConfirmDeleteModal(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={onDeletePlace}>
+            <Button
+              loading={deletePlaceMutation.isPending}
+              variant="destructive"
+              onClick={onDeletePlace}
+            >
               Confirm
             </Button>
           </DialogFooter>

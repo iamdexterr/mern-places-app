@@ -4,22 +4,35 @@ import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
 import { Textarea } from "@/components/ui/textarea";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { placeSchema, type PlaceFormValues } from "@/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams } from "react-router";
-import { DUMMY_PLACES } from "../UserPlaces";
 import { useEffect } from "react";
+import {
+  useCreatePlace,
+  useGetPlaceDetails,
+  useUpdatePlace,
+} from "@/hooks/usePlaces";
+import { toast } from "sonner";
+import authStore from "@/store/authStore";
+import { Loader } from "lucide-react";
 
 const NewPlaces = () => {
-  const placeId = useParams().placeId;
+  const placeId = useParams().placeId!;
 
+  const queryClient = useQueryClient();
+  const { user } = authStore();
   const isEditMode = !!placeId;
 
-  let identifedPlace;
+  const { data: placeDetails, isLoading: isPlaceLoading } = useGetPlaceDetails({
+    placeId,
+    enabled: isEditMode,
+  });
 
   if (isEditMode) {
-    identifedPlace = DUMMY_PLACES.find((place) => place.id === placeId);
+    // identifedPlace = DUMMY_PLACES.find((place) => place.id === placeId);
   }
 
   const placeForm = useForm<PlaceFormValues>({
@@ -31,27 +44,55 @@ const NewPlaces = () => {
     },
   });
 
+  const createPlaceMutation = useCreatePlace({
+    onSuccess: () => {
+      toast.success("Place created successfully!");
+      placeForm.reset();
+    },
+  });
+
+  const updatePlaceMutation = useUpdatePlace({
+    onSuccess: () => {
+      toast.success("Place updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["place-details", placeId] });
+    },
+  });
   useEffect(() => {
-    if (isEditMode && identifedPlace) {
+    if (isEditMode && placeDetails) {
       placeForm.reset({
-        title: identifedPlace?.title,
-        address: identifedPlace?.address,
-        description: identifedPlace?.description,
+        title: placeDetails?.title,
+        address: placeDetails?.address,
+        description: placeDetails?.description,
       });
     }
-  }, [placeId, isEditMode, identifedPlace]);
+  }, [placeId, isEditMode, placeDetails]);
 
   const { errors } = placeForm.formState;
 
   const onSubmit = (values: PlaceFormValues) => {
     if (isEditMode) {
-      console.log("Editing place", values);
+      updatePlaceMutation.mutate({
+        placeId,
+        title: values.title,
+        description: values.description,
+      });
       return;
     }
-    console.log(values);
+    createPlaceMutation.mutate({
+      ...values,
+      creator: user?.id,
+    });
   };
 
-  if (isEditMode && !identifedPlace) {
+  if (isPlaceLoading) {
+    return (
+      <div className="flex items-center justify-center h-40">
+        <Loader className="w-10 h-10 animate-spin " />;
+      </div>
+    );
+  }
+
+  if (isEditMode && !placeDetails) {
     return (
       <Card className="flex items-center justify-center h-40">
         <h2>Could not find the place!</h2>
@@ -91,6 +132,7 @@ const NewPlaces = () => {
                 <Field>
                   <FieldLabel htmlFor="address">Address</FieldLabel>
                   <Input
+                    disabled={isEditMode}
                     {...placeForm.register("address")}
                     id="address"
                     placeholder="Enter your address"
@@ -125,7 +167,9 @@ const NewPlaces = () => {
               </FieldGroup>
             </FieldSet>
             <Field orientation="horizontal">
-              <Button type="submit">Submit</Button>
+              <Button loading={createPlaceMutation.isPending} type="submit">
+                Submit
+              </Button>
             </Field>
           </FieldGroup>
         </form>

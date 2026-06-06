@@ -1,42 +1,50 @@
-import React from "react";
-import PlaceList from "./places/PlaceList";
-import { useParams } from "react-router";
-
-export const DUMMY_PLACES = [
-  {
-    id: "p1",
-    title: "Empire State Building",
-    description: "One of the most famous sky scrapers in the world!",
-    imageUrl:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg",
-    address: "20 W 34th St, New York, NY 10001",
-    location: {
-      lat: 40.7484405,
-      lng: -73.9878584,
-    },
-    creator: "u1",
-  },
-  {
-    id: "p2",
-    title: "Empire State Building",
-    description: "One of the most famous sky scrapers in the world!",
-    imageUrl:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg",
-    address: "20 W 34th St, New York, NY 10001",
-    location: {
-      lat: 40.7484405,
-      lng: -73.9878584,
-    },
-    creator: "u2",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useNavigate, useParams } from "react-router";
+import { useGetPlacesByUserId } from "@/hooks/usePlaces";
+import PlaceItem from "./places/PlaceItem";
 
 const UserPlaces = () => {
-  const userId = useParams().userId;
+  const userId = useParams().userId!;
+  const navigate = useNavigate();
 
-  const userPlaces = DUMMY_PLACES.filter((place) => place.creator === userId);
+  const { data: places, isLoading: isPlacesLoading } =
+    useGetPlacesByUserId(userId);
+  if (isPlacesLoading) {
+    return <div>Loading...</div>;
+  }
+  console.log(places);
+  if (places.length === 0) {
+    return (
+      <Card className="flex items-center justify-center h-40">
+        <h2>No places found. Maybe create one?</h2>
+        <Button
+          onClick={() => {
+            navigate("/places/new");
+          }}
+        >
+          Share Place
+        </Button>
+      </Card>
+    );
+  }
 
-  return <PlaceList items={userPlaces} />;
+  return (
+    <ul className="space-y-4 grid grid-cols-2 gap-4">
+      {places.map((place) => (
+        <PlaceItem
+          key={place.id}
+          id={place.id}
+          image={place.image}
+          title={place.title}
+          description={place.description}
+          address={place.address}
+          creatorId={place.creator}
+          coordinates={place.location}
+        />
+      ))}
+    </ul>
+  );
 };
 
 export default UserPlaces;

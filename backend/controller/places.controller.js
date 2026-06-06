@@ -24,7 +24,10 @@ export const getPLaceById = async (req, res, next) => {
     return next(error);
   }
 
-  return res.json({ place: place.toObject({ getters: true }) });
+  return res.json({
+    message: "Detail fetch successfully",
+    data: place.toObject({ getters: true }),
+  });
 };
 
 export const getPlacesByUserId = async (req, res, next) => {
@@ -40,11 +43,14 @@ export const getPlacesByUserId = async (req, res, next) => {
     return next(err);
   }
 
-  if (!places || places.length === 0) {
+  if (!places) {
     throw new AppError("Could not find a place for the provided user id.", 404);
   }
 
-  return res.json({ places: places.map((p) => p.toObject({ getters: true })) });
+  return res.json({
+    message: "Places retrieved successfully",
+    data: places.map((p) => p.toObject({ getters: true })),
+  });
 };
 
 export const createPlace = async (req, res, next) => {

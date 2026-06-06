@@ -21,7 +21,7 @@ export const useSignupUser = (options?: { onSuccess?: () => void }) => {
   });
 };
 
-export const useLoginUser = ({ onSuccess }: { onSuccess?: () => void }) => {
+export const useLoginUser = ({ onSuccess }: { onSuccess?: (user) => void }) => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess,

@@ -8,12 +8,12 @@ import { NavLink } from "react-router";
 export const HeroHeader = () => {
   const [menuState, setMenuState] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
-  const { isLoggedIn, logout } = authStore();
+  const { isLoggedIn, logout, user } = authStore();
 
   const menuItems = isLoggedIn
     ? [
         { name: "All Users", href: "/" },
-        { name: "My Places", href: "/u1/places" },
+        { name: "My Places", href: `/${user?.id}/places` },
         { name: "Add Place", href: "/places/new" },
         { name: "Logout", href: "/auth", action: logout },
       ]

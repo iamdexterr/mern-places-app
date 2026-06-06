@@ -20,9 +20,9 @@ export const getUsers = async (req, res, next) => {
 
 export const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
-
+  let user;
   try {
-    const user = await User.findOne({ email });
+    user = await User.findOne({ email });
     if (!user || user.password !== password) {
       const error = new AppError("Invalid credentials", 401);
       return next(error);
@@ -33,7 +33,13 @@ export const loginUser = async (req, res, next) => {
     return next(error);
   }
 
-  res.json({ message: "User logged in successfully" });
+  const userData = user.toObject({ getters: true });
+  delete userData.password;
+
+  res.json({
+    message: "User logged in successfully",
+    data: userData,
+  });
 };
 
 export const signupUser = async (req, res, next) => {

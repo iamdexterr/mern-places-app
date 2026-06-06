@@ -37,9 +37,9 @@ export default function LoginPage() {
   });
 
   const loginMutation = useLoginUser({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("User Logged In successfully!");
-      login();
+      login(data.data);
 
       navigate("/");
     },
