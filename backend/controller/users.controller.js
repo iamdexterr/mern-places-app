@@ -2,6 +2,7 @@ import AppError from "../utils/appError.js";
 import User from "../models/users.model.js";
 import Place from "../models/places.model.js";
 import mongoose from "mongoose";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 export const getUsers = async (req, res, next) => {
   let users;
@@ -44,6 +45,8 @@ export const loginUser = async (req, res, next) => {
 
 export const signupUser = async (req, res, next) => {
   const { name, email, password } = req.body;
+  let imageUrl;
+
   // const isExistingUser = USERS.find((user) => user.email === email);
   try {
     const isExistingUser = await User.findOne({ email });
@@ -51,16 +54,25 @@ export const signupUser = async (req, res, next) => {
       const error = new AppError("User already exists", 400);
       return next(error);
     }
-  } catch (er) {
+  } catch (err) {
     const error = new AppError("Something went wrong", 500);
     console.log(err);
     return next(error);
   }
+  try {
+    const result = await uploadToCloudinary(req.file.buffer);
+    console.log(result);
+    imageUrl = result.url;
+  } catch (err) {
+    console.log(err);
+    return next(new AppError("Image upload failed", 500));
+  }
+
   const user = new User({
     name,
     email,
     password,
-    image: "https://example.com/default-profile.png",
+    image: imageUrl,
     places: [],
   });
   try {
