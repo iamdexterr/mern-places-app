@@ -1,3 +1,4 @@
+import ImageUpload from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -57,6 +58,7 @@ export default function LoginPage() {
       email: "",
       password: "",
       name: "",
+      image: undefined,
     },
     resolver: zodResolver(signupSchema),
   });
@@ -68,6 +70,11 @@ export default function LoginPage() {
   };
 
   const signUpSubmitHandler = (values: SignupFormValues) => {
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("email", values.email);
+    formData.append("password", values.password);
+    formData.append("image", values.image);
     signupMutation.mutate(values);
   };
 
@@ -89,6 +96,13 @@ export default function LoginPage() {
               className="space-y-4"
               onSubmit={signupForm.handleSubmit(signUpSubmitHandler)}
             >
+              <ImageUpload
+                id="image"
+                onInput={(file) => {
+                  signupForm.setValue("image", file);
+                }}
+                errorText={signupForm.formState.errors.image?.message}
+              />
               <FieldSet className="w-full space-y-4">
                 <FieldGroup className="space-y-4">
                   <Field>

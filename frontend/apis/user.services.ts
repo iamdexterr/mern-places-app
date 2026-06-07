@@ -5,12 +5,10 @@ export const getUsers = async () => {
   return res.data;
 };
 
-export const signupUser = async (data: {
-  name: string;
-  email: string;
-  password: string;
-}) => {
-  const res = await apiClient.post("/users/signup", data);
+export const signupUser = async (data: FormData) => {
+  const res = await apiClient.post("/users/signup", data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   console.log(res);
   return res.data;
 };
