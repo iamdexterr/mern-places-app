@@ -3,6 +3,7 @@ import { getCoordinatesForAddress } from "../utils/location.js";
 import Place from "../models/places.model.js";
 import User from "../models/users.model.js";
 import mongoose from "mongoose";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 export const getPLaceById = async (req, res, next) => {
   const pid = req.params.pid;
@@ -54,12 +55,22 @@ export const getPlacesByUserId = async (req, res, next) => {
 };
 
 export const createPlace = async (req, res, next) => {
-  const { title, description, creator, address } = req.body;
+  const { title, description, address } = req.body;
+  const creator = req.userData.userId;
   let coordinates;
+  let imageUrl;
   try {
     coordinates = await getCoordinatesForAddress(address);
   } catch (error) {
     return next(error);
+  }
+  try {
+    const result = await uploadToCloudinary(req.file.buffer);
+
+    imageUrl = result.url;
+  } catch (err) {
+    console.log(err);
+    return next(new AppError("Image upload failed", 500));
   }
 
   const payload = {
@@ -68,8 +79,7 @@ export const createPlace = async (req, res, next) => {
     creator,
     address,
     location: coordinates,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg",
+    image: imageUrl,
   };
   let session;
 
@@ -86,7 +96,6 @@ export const createPlace = async (req, res, next) => {
     }
 
     const createPlace = await Place.create([payload], { session });
-    console.log(createPlace);
     user.places.push(createPlace[0]._id);
     await user.save({ session });
 
@@ -123,6 +132,11 @@ export const updatePlace = async (req, res, next) => {
       );
       return next(error);
     }
+    if (place.creator.toString() !== req.userData.userId) {
+      const error = new AppError("You are not authorized", 403);
+      return next(error);
+    }
+
     place.title = title;
     place.description = description;
     await place.save();
@@ -148,6 +162,10 @@ export const deletePlace = async (req, res, next) => {
         "Could not find a place for the provided id.",
         404,
       );
+      return next(error);
+    }
+    if (place.creator.toString() !== req.userData.userId) {
+      const error = new AppError("You are not authorized", 403);
       return next(error);
     }
   } catch (error) {

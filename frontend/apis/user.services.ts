@@ -9,7 +9,6 @@ export const signupUser = async (data: FormData) => {
   const res = await apiClient.post("/users/signup", data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-  console.log(res);
   return res.data;
 };
 

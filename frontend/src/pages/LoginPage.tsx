@@ -40,7 +40,8 @@ export default function LoginPage() {
   const loginMutation = useLoginUser({
     onSuccess: (data) => {
       toast.success("User Logged In successfully!");
-      login(data.data);
+      console.log(data);
+      login(data.data, data.token);
 
       navigate("/");
     },
@@ -58,7 +59,6 @@ export default function LoginPage() {
       email: "",
       password: "",
       name: "",
-      image: undefined,
     },
     resolver: zodResolver(signupSchema),
   });
@@ -75,7 +75,7 @@ export default function LoginPage() {
     formData.append("email", values.email);
     formData.append("password", values.password);
     formData.append("image", values.image);
-    signupMutation.mutate(values);
+    signupMutation.mutate(formData);
   };
 
   if (isLoggedIn) {

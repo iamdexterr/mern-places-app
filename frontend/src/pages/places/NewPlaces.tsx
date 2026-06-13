@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import authStore from "@/store/authStore";
 import { Loader } from "lucide-react";
+import ImageUpload from "@/components/ImageUpload";
 
 const NewPlaces = () => {
   const placeId = useParams().placeId!;
@@ -41,6 +42,7 @@ const NewPlaces = () => {
       title: "",
       address: "",
       description: "",
+      image: undefined,
     },
   });
 
@@ -71,17 +73,17 @@ const NewPlaces = () => {
 
   const onSubmit = (values: PlaceFormValues) => {
     if (isEditMode) {
-      updatePlaceMutation.mutate({
-        placeId,
-        title: values.title,
-        description: values.description,
-      });
+      const formData = new FormData();
+      formData.append("placeId", placeId);
+      formData.append("title", values.title);
+      formData.append("description", values.description);
+      formData.append("image", values.image);
+
+      updatePlaceMutation.mutate(formData);
+
       return;
     }
-    createPlaceMutation.mutate({
-      ...values,
-      creator: user?.id,
-    });
+    createPlaceMutation.mutate(values);
   };
 
   if (isPlaceLoading) {
@@ -166,6 +168,13 @@ const NewPlaces = () => {
                 </Field>
               </FieldGroup>
             </FieldSet>
+            <ImageUpload
+              id="image"
+              onInput={(file) => {
+                placeForm.setValue("image", file);
+              }}
+              errorText={placeForm.formState.errors.image?.message}
+            />
             <Field orientation="horizontal">
               <Button loading={createPlaceMutation.isPending} type="submit">
                 Submit

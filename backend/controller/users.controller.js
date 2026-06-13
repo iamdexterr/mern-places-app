@@ -3,6 +3,8 @@ import User from "../models/users.model.js";
 import Place from "../models/places.model.js";
 import mongoose from "mongoose";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export const getUsers = async (req, res, next) => {
   let users;
@@ -24,7 +26,7 @@ export const loginUser = async (req, res, next) => {
   let user;
   try {
     user = await User.findOne({ email });
-    if (!user || user.password !== password) {
+    if (!user) {
       const error = new AppError("Invalid credentials", 401);
       return next(error);
     }
@@ -34,12 +36,36 @@ export const loginUser = async (req, res, next) => {
     return next(error);
   }
 
+  let passwordMatch = false;
+  try {
+    passwordMatch = await bcrypt.compare(password, user.password);
+  } catch (err) {
+    console.log(err);
+    const error = new AppError("Something went wrong", 500);
+    return next(error);
+  }
+
+  if (!passwordMatch) {
+    const error = new AppError("Invalid credentials", 401);
+    return next(error);
+  }
+
+  const token = jwt.sign(
+    {
+      userId: user.id,
+      email: user.email,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "30s" },
+  );
+
   const userData = user.toObject({ getters: true });
   delete userData.password;
 
   res.json({
     message: "User logged in successfully",
     data: userData,
+    token,
   });
 };
 
@@ -68,10 +94,19 @@ export const signupUser = async (req, res, next) => {
     return next(new AppError("Image upload failed", 500));
   }
 
+  let hashedPassword;
+
+  try {
+    hashedPassword = await bcrypt.hash(password, 10);
+  } catch (err) {
+    console.log(err);
+    return next(new AppError("Could not hash password", 500));
+  }
+
   const user = new User({
     name,
     email,
-    password,
+    password: hashedPassword,
     image: imageUrl,
     places: [],
   });

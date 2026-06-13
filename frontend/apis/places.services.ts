@@ -1,12 +1,9 @@
 import apiClient from "./api-client";
 
-export const createPlace = async (data: {
-  title: string;
-  address: string;
-  description: string;
-  creator: string;
-}) => {
-  const res = await apiClient.post("/places", data);
+export const createPlace = async (data: FormData) => {
+  const res = await apiClient.post("/places", data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 };
 

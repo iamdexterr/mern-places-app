@@ -11,6 +11,8 @@ import {
   createPlaceSchema,
   updatePlaceSchema,
 } from "../schemas/places.schemas.js";
+import checkAuth from "../middleware/checkAuth.js";
+import fileUpload from "../middleware/fileupload.js";
 
 const router = Router();
 
@@ -18,7 +20,14 @@ router.get("/:pid", getPLaceById);
 
 router.get("/user/:uid", getPlacesByUserId);
 
-router.post("/", validate(createPlaceSchema), createPlace);
+router.use(checkAuth);
+
+router.post(
+  "/",
+  fileUpload.single("image"),
+  validate(createPlaceSchema),
+  createPlace,
+);
 
 router.patch("/:pid", validate(updatePlaceSchema), updatePlace);
 
