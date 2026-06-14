@@ -3,6 +3,7 @@ import {
   deleteUser,
   getUsers,
   loginUser,
+  logoutUser,
   signupUser,
 } from "../controller/users.controller.js";
 import validate from "../middleware/validate.js";
@@ -22,5 +23,6 @@ router.post(
   validate(signupSchema),
   signupUser,
 );
+router.post("/logout", logoutUser);
 
 export default router;

@@ -1,6 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getUsers, loginUser, signupUser } from "../../apis/user.services";
+import {
+  getUsers,
+  loginUser,
+  logoutUser,
+  signupUser,
+} from "../../apis/user.services";
 import { toast } from "sonner";
+import authStore from "@/store/authStore";
 
 export const useGetUsers = () => {
   return useQuery({
@@ -27,6 +33,16 @@ export const useLoginUser = ({ onSuccess }: { onSuccess?: (user) => void }) => {
     onSuccess,
     onError: (err) => {
       toast.error(err.message);
+    },
+  });
+};
+
+export const useLogoutUser = () => {
+  return useMutation({
+    mutationFn: logoutUser,
+    onSuccess: () => {
+      toast.success("User logged out successfully!");
+      authStore.getState().logout();
     },
   });
 };

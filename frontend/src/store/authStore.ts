@@ -6,9 +6,8 @@ const authStore = create(
     (set) => ({
       isLoggedIn: false,
       user: null,
-      token: null,
-      login: (user, token) => set({ isLoggedIn: true, user, token }),
-      logout: () => set({ isLoggedIn: false, user: null, token: null }),
+      login: (user) => set({ isLoggedIn: true, user }),
+      logout: () => set({ isLoggedIn: false, user: null }),
     }),
 
     {

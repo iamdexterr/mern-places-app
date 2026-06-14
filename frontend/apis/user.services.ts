@@ -16,3 +16,8 @@ export const loginUser = async (data: { email: string; password: string }) => {
   const res = await apiClient.post("/users/login", data);
   return res.data;
 };
+
+export const logoutUser = async () => {
+  const res = await apiClient.post("/users/logout");
+  return res.data;
+};

@@ -56,16 +56,21 @@ export const loginUser = async (req, res, next) => {
       email: user.email,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "30s" },
+    { expiresIn: "1h" },
   );
 
   const userData = user.toObject({ getters: true });
   delete userData.password;
 
+  res.cookie("token", token, {
+    httpOnly: true, // JS can't read it → XSS-safe
+    secure: false, //process.env.NODE_ENV === "production" HTTPS-only in prod; false on localhost
+    sameSite: "lax", // CSRF mitigation
+    maxAge: 3600000, // 1h in ms — match token expiry
+  });
   res.json({
     message: "User logged in successfully",
     data: userData,
-    token,
   });
 };
 
@@ -159,4 +164,9 @@ export const deleteUser = async (req, res, next) => {
     console.log(error);
     return next(err);
   }
+};
+
+export const logoutUser = async (req, res, next) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "User logged out successfully" });
 };

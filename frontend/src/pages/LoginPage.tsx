@@ -41,7 +41,7 @@ export default function LoginPage() {
     onSuccess: (data) => {
       toast.success("User Logged In successfully!");
       console.log(data);
-      login(data.data, data.token);
+      login(data.data);
 
       navigate("/");
     },

@@ -1,4 +1,5 @@
 "use client";
+import { useLogoutUser } from "@/hooks/useUsers";
 import { cn } from "@/lib/utils";
 import authStore from "@/store/authStore";
 import { Menu, X } from "lucide-react";
@@ -8,14 +9,20 @@ import { NavLink } from "react-router";
 export const HeroHeader = () => {
   const [menuState, setMenuState] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
-  const { isLoggedIn, logout, user } = authStore();
+  const { isLoggedIn, user } = authStore();
+
+  const logoutMutation = useLogoutUser();
 
   const menuItems = isLoggedIn
     ? [
         { name: "All Users", href: "/" },
         { name: "My Places", href: `/${user?.id}/places` },
         { name: "Add Place", href: "/places/new" },
-        { name: "Logout", href: "/auth", action: logout },
+        {
+          name: "Logout",
+          href: "/auth",
+          action: () => logoutMutation.mutate(),
+        },
       ]
     : [
         { name: "All Users", href: "/" },
